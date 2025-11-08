@@ -5,25 +5,41 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import nltk
+import ssl
+
+# Fix SSL certificate issues for NLTK downloads
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+# Download NLTK data with error handling
+@st.cache_resource
+def download_nltk_data():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt', quiet=True)
+
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        nltk.download('stopwords', quiet=True)
+
+    try:
+        nltk.data.find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet', quiet=True)
+
+# Download NLTK data
+download_nltk_data()
+
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import matplotlib.pyplot as plt
 import seaborn as sns
-from wordcloud import WordCloud
-
-# Download NLTK data
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
-try:
-    nltk.data.find('corpora/wordnet')
-except LookupError:
-    nltk.download('wordnet')
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
 
 # Set page configuration
 st.set_page_config(
@@ -38,10 +54,13 @@ def load_css():
     st.markdown("""
     <style>
     .main-header {
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     .match-score {
         font-size: 1.5rem;
@@ -54,13 +73,26 @@ def load_css():
         border: 1px solid #ddd;
         margin: 10px 0;
         background-color: #f8f9fa;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .skill-match {
         background-color: #d4edda;
-        padding: 0.5rem;
-        border-radius: 5px;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
         margin: 0.2rem;
         display: inline-block;
+        font-size: 0.9rem;
+    }
+    .missing-skill {
+        background-color: #f8d7da;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        margin: 0.2rem;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+    .stProgress > div > div > div > div {
+        background-color: #1f77b4;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -99,7 +131,9 @@ class SkillMatcher:
             'mysql', 'postgresql', 'aws', 'azure', 'gcp', 'docker', 'kubernetes',
             'git', 'jenkins', 'machine learning', 'deep learning', 'nlp',
             'computer vision', 'data analysis', 'pandas', 'numpy', 'tensorflow',
-            'pytorch', 'scikit-learn', 'tableau', 'powerbi', 'excel'
+            'pytorch', 'scikit-learn', 'tableau', 'powerbi', 'excel', 'typescript',
+            'rest api', 'graphql', 'microservices', 'linux', 'bash', 'shell scripting',
+            'agile', 'scrum', 'ci/cd', 'terraform', 'ansible', 'prometheus', 'grafana'
         }
         
         text_lower = text.lower()
@@ -149,6 +183,7 @@ class SkillMatcher:
             'matching_skills_count': len(matching_skills)
         }
 
+@st.cache_data
 def load_sample_data():
     """Load sample job and resume data"""
     # Sample job data
@@ -180,6 +215,12 @@ def load_sample_data():
             'python,machine learning,deep learning,nlp,computer vision,pytorch',
             'react,node.js,python,mongodb,aws,full stack',
             'docker,kubernetes,aws,ci/cd,jenkins,scripting'
+        ],
+        'Location': [
+            'Remote', 'New York', 'San Francisco', 'Boston', 'Austin', 'Seattle'
+        ],
+        'Salary': [
+            '$120,000', '$100,000', '$110,000', '$130,000', '$115,000', '$125,000'
         ]
     }
     
@@ -197,6 +238,12 @@ def load_sample_data():
             
             """Machine Learning Engineer focused on deep learning and computer vision. 
             Proficient in PyTorch, TensorFlow, and Python. Experience with NLP projects."""
+        ],
+        'Title': [
+            'Senior Data Scientist',
+            'Frontend Developer',
+            'Backend Developer', 
+            'ML Engineer'
         ]
     }
     
@@ -204,32 +251,6 @@ def load_sample_data():
     resumes_df = pd.DataFrame(resumes_data)
     
     return jobs_df, resumes_df
-
-def main():
-    load_css()
-    
-    st.markdown('<h1 class="main-header">🔍 AI-Powered Skill Matcher</h1>', unsafe_allow_html=True)
-    st.markdown("### Bridge the Gap Between Job Seekers and Roles")
-    
-    # Initialize session state
-    if 'matcher' not in st.session_state:
-        st.session_state.matcher = SkillMatcher()
-    if 'jobs_df' not in st.session_state:
-        st.session_state.jobs_df, st.session_state.resumes_df = load_sample_data()
-    
-    # Sidebar
-    st.sidebar.title("Navigation")
-    app_mode = st.sidebar.selectbox("Choose Mode", 
-                                   ["Skill Matching", "Job Search", "Resume Analysis", "About"])
-    
-    if app_mode == "Skill Matching":
-        show_skill_matching()
-    elif app_mode == "Job Search":
-        show_job_search()
-    elif app_mode == "Resume Analysis":
-        show_resume_analysis()
-    else:
-        show_about()
 
 def show_skill_matching():
     st.header("🎯 Skill Matching")
@@ -250,133 +271,217 @@ Education: Bachelor's in Computer Science.
 Projects: Built e-commerce platform using MERN stack."""
         )
         
-        # Or use sample resume
-        if st.button("Use Sample Resume"):
-            sample_resume = st.session_state.resumes_df.iloc[0]['Resume Text']
-            st.session_state.sample_resume = sample_resume
+        # Sample resume selector
+        st.subheader("🎲 Or Use Sample Resume")
+        sample_resumes = st.session_state.resumes_df['Resume Text'].tolist()
+        sample_titles = st.session_state.resumes_df['Title'].tolist()
+        
+        sample_options = [f"{title}" for title in sample_titles]
+        selected_sample = st.selectbox("Choose a sample resume:", ["Select..."] + sample_options)
+        
+        if selected_sample != "Select...":
+            sample_index = sample_options.index(selected_sample)
+            resume_input = sample_resumes[sample_index]
+            st.text_area("Sample Resume Preview:", value=resume_input, height=150, key="sample_preview")
     
     with col2:
         st.subheader("📊 Matching Results")
         
-        if resume_input or 'sample_resume' in st.session_state:
-            resume_text = resume_input if resume_input else st.session_state.sample_resume
-            
-            # Calculate similarities
-            similarities = st.session_state.matcher.calculate_similarity(
-                st.session_state.jobs_df['Description'].tolist(),
-                resume_text
-            )
-            
-            # Add similarity scores to jobs dataframe
-            results_df = st.session_state.jobs_df.copy()
-            results_df['Match Score'] = (similarities * 100).round(2)
-            results_df = results_df.sort_values('Match Score', ascending=False)
-            
+        if resume_input:
+            with st.spinner('Analyzing your skills and finding matches...'):
+                # Calculate similarities
+                similarities = st.session_state.matcher.calculate_similarity(
+                    st.session_state.jobs_df['Description'].tolist(),
+                    resume_input
+                )
+                
+                # Add similarity scores to jobs dataframe
+                results_df = st.session_state.jobs_df.copy()
+                results_df['Match Score'] = (similarities * 100).round(2)
+                results_df = results_df.sort_values('Match Score', ascending=False)
+                
+                # Display progress
+                progress_bar = st.progress(0)
+                for i in range(100):
+                    progress_bar.progress(i + 1)
+                
             # Display results
+            st.success(f"Found {len(results_df)} potential job matches!")
+            
             for idx, row in results_df.iterrows():
+                # Determine match color
+                match_color = "#2ecc71" if row['Match Score'] > 70 else "#f39c12" if row['Match Score'] > 50 else "#e74c3c"
+                
                 with st.container():
                     st.markdown(f"""
                     <div class="job-card">
                         <h3>{row['Job Title']} - {row['Company']}</h3>
-                        <p class="match-score">Match Score: {row['Match Score']}%</p>
-                        <p><strong>Description:</strong> {row['Description'][:150]}...</p>
+                        <p style="color: {match_color}; font-size: 1.2rem; font-weight: bold;">
+                            Match Score: {row['Match Score']}%
+                        </p>
+                        <p><strong>📍 Location:</strong> {row['Location']} | <strong>💰 Salary:</strong> {row['Salary']}</p>
+                        <p><strong>Description:</strong> {row['Description']}</p>
                     </div>
                     """, unsafe_allow_html=True)
                     
                     # Show detailed analysis
-                    with st.expander("View Detailed Analysis"):
+                    with st.expander("View Detailed Skill Analysis"):
                         analysis = st.session_state.matcher.get_match_analysis(
-                            row['Description'], resume_text
+                            row['Description'], resume_input
                         )
                         
                         col_a, col_b = st.columns(2)
                         
                         with col_a:
-                            st.success("✅ Matching Skills")
-                            for skill in analysis['matching_skills']:
-                                st.markdown(f'<div class="skill-match">{skill}</div>', unsafe_allow_html=True)
+                            st.success(f"✅ Matching Skills ({analysis['matching_skills_count']} found)")
+                            if analysis['matching_skills']:
+                                for skill in analysis['matching_skills']:
+                                    st.markdown(f'<div class="skill-match">{skill}</div>', unsafe_allow_html=True)
+                            else:
+                                st.info("No matching skills found")
                         
                         with col_b:
-                            st.error("❌ Missing Skills")
-                            for skill in analysis['missing_skills']:
-                                st.markdown(f'<div class="skill-match" style="background-color: #f8d7da;">{skill}</div>', unsafe_allow_html=True)
+                            st.error(f"❌ Missing Skills ({len(analysis['missing_skills'])} needed)")
+                            if analysis['missing_skills']:
+                                for skill in analysis['missing_skills']:
+                                    st.markdown(f'<div class="missing-skill">{skill}</div>', unsafe_allow_html=True)
+                            else:
+                                st.success("All required skills matched!")
                         
-                        st.info(f"Skill Match Rate: {analysis['skill_match_rate']*100:.1f}%")
+                        st.info(f"**Skill Match Rate:** {analysis['skill_match_rate']*100:.1f}%")
             
             # Visualization
             st.subheader("📈 Match Score Distribution")
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.barplot(data=results_df, x='Match Score', y='Job Title', palette='viridis')
+            colors = ['#2ecc71' if x > 70 else '#f39c12' if x > 50 else '#e74c3c' for x in results_df['Match Score']]
+            bars = ax.barh(results_df['Job Title'], results_df['Match Score'], color=colors)
             ax.set_xlabel('Match Score (%)')
-            ax.set_ylabel('Job Titles')
+            ax.set_title('Job Match Scores')
+            ax.bar_label(bars, fmt='%.1f%%')
             plt.tight_layout()
             st.pyplot(fig)
             
         else:
-            st.info("Please enter your resume text to see matching jobs.")
+            st.info("👆 Please enter your resume text or select a sample resume to see matching jobs.")
 
 def show_job_search():
     st.header("🔍 Job Search")
     
-    search_term = st.text_input("Search for jobs by title or skills:")
+    col1, col2 = st.columns([2, 1])
     
-    filtered_jobs = st.session_state.jobs_df
+    with col1:
+        search_term = st.text_input("Search for jobs by title, skills, or company:")
+    
+    with col2:
+        location_filter = st.selectbox("Filter by location:", ["All Locations"] + st.session_state.jobs_df['Location'].unique().tolist())
+    
+    filtered_jobs = st.session_state.jobs_df.copy()
+    
     if search_term:
         filtered_jobs = filtered_jobs[
             filtered_jobs['Job Title'].str.contains(search_term, case=False) |
-            filtered_jobs['Description'].str.contains(search_term, case=False)
+            filtered_jobs['Description'].str.contains(search_term, case=False) |
+            filtered_jobs['Company'].str.contains(search_term, case=False) |
+            filtered_jobs['Required Skills'].str.contains(search_term, case=False)
         ]
     
-    for idx, row in filtered_jobs.iterrows():
-        with st.container():
-            st.markdown(f"""
-            <div class="job-card">
-                <h3>{row['Job Title']} - {row['Company']}</h3>
-                <p><strong>Description:</strong> {row['Description']}</p>
-                <p><strong>Required Skills:</strong> {row['Required Skills']}</p>
-            </div>
-            """, unsafe_allow_html=True)
+    if location_filter != "All Locations":
+        filtered_jobs = filtered_jobs[filtered_jobs['Location'] == location_filter]
+    
+    if len(filtered_jobs) == 0:
+        st.warning("No jobs found matching your criteria. Try broadening your search.")
+    else:
+        st.success(f"Found {len(filtered_jobs)} jobs matching your criteria.")
+        
+        for idx, row in filtered_jobs.iterrows():
+            with st.container():
+                st.markdown(f"""
+                <div class="job-card">
+                    <h3>{row['Job Title']} - {row['Company']}</h3>
+                    <p><strong>📍 Location:</strong> {row['Location']} | <strong>💰 Salary:</strong> {row['Salary']}</p>
+                    <p><strong>Description:</strong> {row['Description']}</p>
+                    <p><strong>Required Skills:</strong> {row['Required Skills']}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
 def show_resume_analysis():
     st.header("📊 Resume Analysis")
     
-    resume_text = st.text_area("Paste your resume for analysis:", height=300)
+    resume_text = st.text_area("Paste your resume for analysis:", height=300,
+                              placeholder="Paste your resume text here to analyze your skills and get improvement suggestions...")
     
     if resume_text:
         matcher = st.session_state.matcher
         
-        # Extract skills
-        skills = matcher.extract_skills(resume_text)
+        with st.spinner('Analyzing your resume...'):
+            # Extract skills
+            skills = matcher.extract_skills(resume_text)
+            
+            # Skill categories
+            skill_categories = {
+                'Programming Languages': ['python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'go', 'rust', 'swift'],
+                'Web Development': ['html', 'css', 'react', 'angular', 'vue', 'node', 'express', 'django', 'flask'],
+                'Databases': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'oracle'],
+                'Cloud & DevOps': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'terraform', 'ci/cd'],
+                'Data Science & ML': ['python', 'machine learning', 'deep learning', 'nlp', 'computer vision', 
+                                    'tensorflow', 'pytorch', 'pandas', 'numpy', 'scikit-learn'],
+                'Tools & Other': ['git', 'linux', 'bash', 'agile', 'scrum', 'tableau', 'powerbi', 'excel']
+            }
+            
+            categorized_skills = {}
+            for category, category_skills in skill_categories.items():
+                found_skills = [skill for skill in skills if skill in category_skills]
+                if found_skills:
+                    categorized_skills[category] = found_skills
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.subheader("🛠️ Detected Skills")
-            for skill in skills:
-                st.markdown(f'<div class="skill-match">{skill}</div>', unsafe_allow_html=True)
-            
             st.metric("Total Skills Detected", len(skills))
+            
+            for category, category_skills in categorized_skills.items():
+                with st.expander(f"{category} ({len(category_skills)} skills)"):
+                    for skill in category_skills:
+                        st.markdown(f'<div class="skill-match">{skill}</div>', unsafe_allow_html=True)
         
         with col2:
-            st.subheader("📊 Skill Cloud")
+            st.subheader("📊 Skill Distribution")
             if skills:
-                skill_text = ' '.join(skills)
-                wordcloud = WordCloud(width=400, height=200, background_color='white').generate(skill_text)
+                # Create skill count by category
+                category_counts = {category: len(skills_list) for category, skills_list in categorized_skills.items()}
                 
-                fig, ax = plt.subplots(figsize=(10, 5))
-                ax.imshow(wordcloud, interpolation='bilinear')
-                ax.axis('off')
-                st.pyplot(fig)
+                fig, ax = plt.subplots(figsize=(8, 6))
+                if category_counts:
+                    ax.pie(category_counts.values(), labels=category_counts.keys(), autopct='%1.1f%%', startangle=90)
+                    ax.axis('equal')
+                    st.pyplot(fig)
+            else:
+                st.info("No skills detected. Make sure to include technical skills in your resume.")
         
         # Resume suggestions
         st.subheader("💡 Improvement Suggestions")
-        if len(skills) < 10:
-            st.warning("Consider adding more technical skills to your resume")
-        else:
-            st.success("Good variety of skills detected!")
         
-        if 'experience' not in resume_text.lower():
-            st.info("Add more details about your work experience")
+        suggestion_count = 0
+        
+        if len(skills) < 5:
+            st.warning("🔸 Consider adding more technical skills to your resume")
+            suggestion_count += 1
+        
+        if 'experience' not in resume_text.lower() and 'work' not in resume_text.lower():
+            st.warning("🔸 Add more details about your work experience and projects")
+            suggestion_count += 1
+        
+        if 'education' not in resume_text.lower() and 'degree' not in resume_text.lower():
+            st.warning("🔸 Include your educational background")
+            suggestion_count += 1
+        
+        if 'project' not in resume_text.lower():
+            st.warning("🔸 Add details about your projects and achievements")
+            suggestion_count += 1
+        
+        if suggestion_count == 0:
+            st.success("🎉 Your resume looks good! It includes key sections and technical skills.")
 
 def show_about():
     st.header("ℹ️ About AI Skill Matcher")
@@ -413,7 +518,51 @@ def show_about():
     - Recruiters identifying suitable candidates
     - Career guidance and skill development
     - Resume optimization and improvement
+    
+    ### 🔧 How to Use
+    
+    1. Go to **Skill Matching** tab
+    2. Enter your resume text or use a sample resume
+    3. View matching jobs with scores
+    4. Analyze skill gaps and matches
+    5. Use insights to improve your resume
     """)
+
+def main():
+    load_css()
+    
+    st.markdown('<h1 class="main-header">🔍 AI-Powered Skill Matcher</h1>', unsafe_allow_html=True)
+    st.markdown("### Bridge the Gap Between Job Seekers and Roles")
+    
+    # Initialize session state
+    if 'matcher' not in st.session_state:
+        st.session_state.matcher = SkillMatcher()
+    if 'jobs_df' not in st.session_state:
+        st.session_state.jobs_df, st.session_state.resumes_df = load_sample_data()
+    
+    # Sidebar
+    st.sidebar.title("Navigation")
+    st.sidebar.markdown("---")
+    app_mode = st.sidebar.selectbox("Choose Mode", 
+                                   ["Skill Matching", "Job Search", "Resume Analysis", "About"])
+    
+    st.sidebar.markdown("---")
+    st.sidebar.info("""
+    **Quick Start:**
+    1. Go to **Skill Matching**
+    2. Enter your resume
+    3. View job matches
+    4. Analyze skill gaps
+    """)
+    
+    if app_mode == "Skill Matching":
+        show_skill_matching()
+    elif app_mode == "Job Search":
+        show_job_search()
+    elif app_mode == "Resume Analysis":
+        show_resume_analysis()
+    else:
+        show_about()
 
 if __name__ == "__main__":
     main()
