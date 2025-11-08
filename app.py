@@ -43,8 +43,8 @@ import seaborn as sns
 
 # Set page configuration
 st.set_page_config(
-    page_title="AI Skill Matcher - India",
-    page_icon="🇮🇳",
+    page_title="AI Skill Matcher",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -58,7 +58,7 @@ def load_css():
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
-        background: linear-gradient(135deg, #FF9933 0%, #138808 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -91,12 +91,8 @@ def load_css():
         display: inline-block;
         font-size: 0.9rem;
     }
-    .indian-flag {
-        color: #FF9933;
-        font-size: 1.2em;
-    }
     .stProgress > div > div > div > div {
-        background-color: #138808;
+        background-color: #1f77b4;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -191,8 +187,8 @@ class SkillMatcher:
 
 @st.cache_data
 def load_sample_data():
-    """Load sample job and resume data with Indian context"""
-    # Sample job data for Indian market
+    """Load sample job and resume data"""
+    # Sample job data
     jobs_data = {
         'Job Title': [
             'Data Scientist',
@@ -207,21 +203,21 @@ def load_sample_data():
             'React Native Developer'
         ],
         'Company': [
-            'Tata Consultancy Services', 'Infosys', 'Wipro', 
-            'HCL Technologies', 'Tech Mahindra', 'Accenture India',
-            'Flipkart', 'Paytm', 'Zomato', 'Ola Cabs'
+            'Tech Solutions Inc', 'Digital Innovations', 'Web Services Co', 
+            'AI Technologies', 'Software Creations', 'Cloud Systems',
+            'Mobile Apps Ltd', 'Enterprise Solutions', 'Data Systems', 'App Developers'
         ],
         'Description': [
-            'Looking for Data Scientist with strong Python skills, machine learning experience, pandas, numpy, SQL. Knowledge of TensorFlow or PyTorch required. Experience with Indian market data preferred.',
-            'Seeking Frontend Developer proficient in JavaScript, React, HTML, CSS. Experience with responsive design and modern frameworks. Knowledge of Indian UI/UX trends.',
-            'Backend Developer needed with expertise in Java, Spring Boot, Microservices, SQL. Experience with high-traffic systems. Knowledge of Indian digital payment systems a plus.',
-            'Machine Learning Engineer required with deep learning, NLP, computer vision experience. Proficiency in Python, PyTorch, TensorFlow. Experience with Indian languages NLP preferred.',
-            'Full Stack Developer with React, Node.js, MongoDB, and AWS experience. Must have experience in startup environment. Knowledge of Indian e-commerce domain.',
-            'DevOps Engineer with Docker, Kubernetes, AWS, CI/CD, Jenkins experience. Strong scripting skills. Experience with scalable infrastructure for Indian user base.',
-            'Android Developer with Kotlin/Java experience. Knowledge of Android SDK, Material Design. Experience with apps for Indian users.',
-            'Java Developer with Spring Framework, Hibernate, REST APIs. Experience with enterprise applications. Knowledge of Indian banking systems preferred.',
-            'Python Developer with Django/Flask experience. Strong in algorithms and data structures. Experience with Indian startup ecosystem.',
-            'React Native Developer for cross-platform mobile apps. Experience with Redux, TypeScript. Knowledge of Indian mobile market trends.'
+            'Looking for Data Scientist with strong Python skills, machine learning experience, pandas, numpy, SQL. Knowledge of TensorFlow or PyTorch required.',
+            'Seeking Frontend Developer proficient in JavaScript, React, HTML, CSS. Experience with responsive design and modern frameworks.',
+            'Backend Developer needed with expertise in Java, Spring Boot, Microservices, SQL. Experience with high-traffic systems.',
+            'Machine Learning Engineer required with deep learning, NLP, computer vision experience. Proficiency in Python, PyTorch, TensorFlow.',
+            'Full Stack Developer with React, Node.js, MongoDB, and AWS experience. Must have experience in startup environment.',
+            'DevOps Engineer with Docker, Kubernetes, AWS, CI/CD, Jenkins experience. Strong scripting skills.',
+            'Android Developer with Kotlin/Java experience. Knowledge of Android SDK, Material Design.',
+            'Java Developer with Spring Framework, Hibernate, REST APIs. Experience with enterprise applications.',
+            'Python Developer with Django/Flask experience. Strong in algorithms and data structures.',
+            'React Native Developer for cross-platform mobile apps. Experience with Redux, TypeScript.'
         ],
         'Required Skills': [
             'python,machine learning,pandas,numpy,sql,tensorflow',
@@ -236,7 +232,7 @@ def load_sample_data():
             'react native,javascript,redux,typescript'
         ],
         'Location': [
-            'Bangalore', 'Hyderabad', 'Pune', 'Delhi NCR', 'Chennai',
+            'Bangalore', 'Hyderabad', 'Pune', 'Delhi', 'Chennai',
             'Mumbai', 'Gurgaon', 'Noida', 'Kolkata', 'Ahmedabad'
         ],
         'Salary': [
@@ -249,22 +245,22 @@ def load_sample_data():
         ]
     }
     
-    # Sample resumes with Indian context
+    # Sample resumes
     resumes_data = {
         'Resume Text': [
-            """Experienced Data Scientist with 4 years experience in Bengaluru. Strong in Python, machine learning, pandas, numpy, SQL. 
-            Worked on Indian e-commerce data analysis. Skilled in TensorFlow and statistical modeling. Education: B.Tech from IIT Delhi.""",
+            """Experienced Data Scientist with 4 years experience. Strong in Python, machine learning, pandas, numpy, SQL. 
+            Worked on e-commerce data analysis. Skilled in TensorFlow and statistical modeling. Education: B.Tech in Computer Science.""",
             
-            """Frontend Developer from Pune with 3 years experience. Specializing in JavaScript, React, HTML5, CSS3. 
-            Built responsive web applications for Indian startups. Experience with Redux and modern frontend tools.""",
+            """Frontend Developer with 3 years experience. Specializing in JavaScript, React, HTML5, CSS3. 
+            Built responsive web applications for startups. Experience with Redux and modern frontend tools.""",
             
-            """Backend Developer with Java expertise. 4 years experience in Hyderabad. Strong in Spring Boot, Microservices, Hibernate. 
-            Worked on banking applications for Indian banks. Knowledge of SQL and system design.""",
+            """Backend Developer with Java expertise. 4 years experience. Strong in Spring Boot, Microservices, Hibernate. 
+            Worked on banking applications. Knowledge of SQL and system design.""",
             
-            """Machine Learning Engineer focused on computer vision. 3 years experience in Delhi. 
-            Proficient in PyTorch, TensorFlow, and Python. Experience with Indian language text recognition projects.""",
+            """Machine Learning Engineer focused on computer vision. 3 years experience. 
+            Proficient in PyTorch, TensorFlow, and Python. Experience with text recognition projects.""",
             
-            """Full Stack Developer from Mumbai with MERN stack experience. Built e-commerce platforms for Indian market. 
+            """Full Stack Developer with MERN stack experience. Built e-commerce platforms. 
             Strong in React, Node.js, MongoDB, and AWS deployment."""
         ],
         'Title': [
@@ -282,7 +278,7 @@ def load_sample_data():
     return jobs_df, resumes_df
 
 def show_skill_matching():
-    st.header("🎯 Skill Matching for Indian Job Market")
+    st.header("🎯 Skill Matching")
     
     col1, col2 = st.columns([1, 1])
     
@@ -294,14 +290,14 @@ def show_skill_matching():
             placeholder="""Enter your resume text here. Include your skills, experience, education, and projects.
 
 Example:
-Software Developer with 3 years experience in Bangalore.
+Software Developer with 3 years experience.
 Skills: Java, Spring Boot, Microservices, SQL, AWS.
-Education: B.Tech in Computer Science from VTU.
-Projects: Built payment gateway integration for Indian market."""
+Education: B.Tech in Computer Science.
+Projects: Built payment gateway integration."""
         )
         
         # Sample resume selector
-        st.subheader("🎲 Use Indian Sample Resume")
+        st.subheader("🎲 Use Sample Resume")
         sample_resumes = st.session_state.resumes_df['Resume Text'].tolist()
         sample_titles = st.session_state.resumes_df['Title'].tolist()
         
@@ -317,7 +313,7 @@ Projects: Built payment gateway integration for Indian market."""
         st.subheader("📊 Matching Results")
         
         if resume_input:
-            with st.spinner('Analyzing your skills for Indian job market...'):
+            with st.spinner('Analyzing your skills and finding matches...'):
                 # Calculate similarities
                 similarities = st.session_state.matcher.calculate_similarity(
                     st.session_state.jobs_df['Description'].tolist(),
@@ -335,7 +331,7 @@ Projects: Built payment gateway integration for Indian market."""
                     progress_bar.progress(i + 1)
                 
             # Display results
-            st.success(f"Found {len(results_df)} potential job matches in India!")
+            st.success(f"Found {len(results_df)} potential job matches!")
             
             for idx, row in results_df.iterrows():
                 # Determine match color
@@ -381,22 +377,22 @@ Projects: Built payment gateway integration for Indian market."""
                         st.info(f"**Skill Match Rate:** {analysis['skill_match_rate']*100:.1f}%")
             
             # Visualization
-            st.subheader("📈 Match Score Distribution - Indian Companies")
+            st.subheader("📈 Match Score Distribution")
             fig, ax = plt.subplots(figsize=(12, 6))
             colors = ['#2ecc71' if x > 70 else '#f39c12' if x > 50 else '#e74c3c' for x in results_df['Match Score']]
             bars = ax.barh(results_df['Job Title'] + ' - ' + results_df['Company'], results_df['Match Score'], color=colors)
             ax.set_xlabel('Match Score (%)')
-            ax.set_title('Job Match Scores for Indian Companies')
+            ax.set_title('Job Match Scores')
             ax.bar_label(bars, fmt='%.1f%%')
             plt.xticks(rotation=45)
             plt.tight_layout()
             st.pyplot(fig)
             
         else:
-            st.info("👆 Please enter your resume text or select a sample resume to see matching jobs in India.")
+            st.info("👆 Please enter your resume text or select a sample resume to see matching jobs.")
 
 def show_job_search():
-    st.header("🔍 Job Search in India")
+    st.header("🔍 Job Search")
     
     col1, col2, col3 = st.columns([2, 1, 1])
     
@@ -404,7 +400,7 @@ def show_job_search():
         search_term = st.text_input("Search jobs by title, skills, or company:")
     
     with col2:
-        location_filter = st.selectbox("Filter by city:", ["All India"] + st.session_state.jobs_df['Location'].unique().tolist())
+        location_filter = st.selectbox("Filter by city:", ["All Locations"] + st.session_state.jobs_df['Location'].unique().tolist())
     
     with col3:
         experience_filter = st.selectbox("Experience level:", ["All Levels"] + st.session_state.jobs_df['Experience'].unique().tolist())
@@ -419,7 +415,7 @@ def show_job_search():
             filtered_jobs['Required Skills'].str.contains(search_term, case=False)
         ]
     
-    if location_filter != "All India":
+    if location_filter != "All Locations":
         filtered_jobs = filtered_jobs[filtered_jobs['Location'] == location_filter]
     
     if experience_filter != "All Levels":
@@ -428,7 +424,7 @@ def show_job_search():
     if len(filtered_jobs) == 0:
         st.warning("No jobs found matching your criteria. Try broadening your search.")
     else:
-        st.success(f"Found {len(filtered_jobs)} jobs matching your criteria in India.")
+        st.success(f"Found {len(filtered_jobs)} jobs matching your criteria.")
         
         for idx, row in filtered_jobs.iterrows():
             with st.container():
@@ -443,19 +439,19 @@ def show_job_search():
                 """, unsafe_allow_html=True)
 
 def show_resume_analysis():
-    st.header("📊 Resume Analysis for Indian Market")
+    st.header("📊 Resume Analysis")
     
     resume_text = st.text_area("Paste your resume for analysis:", height=300,
-                              placeholder="Paste your resume text here to analyze your skills and get improvement suggestions for Indian job market...")
+                              placeholder="Paste your resume text here to analyze your skills and get improvement suggestions...")
     
     if resume_text:
         matcher = st.session_state.matcher
         
-        with st.spinner('Analyzing your resume for Indian job market...'):
+        with st.spinner('Analyzing your resume...'):
             # Extract skills
             skills = matcher.extract_skills(resume_text)
             
-            # Skill categories relevant to Indian market
+            # Skill categories
             skill_categories = {
                 'Programming Languages': ['python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'kotlin', 'swift'],
                 'Web Development': ['html', 'css', 'react', 'angular', 'vue', 'node', 'express', 'django', 'flask'],
@@ -493,57 +489,49 @@ def show_resume_analysis():
                 
                 fig, ax = plt.subplots(figsize=(8, 6))
                 if category_counts:
-                    colors = ['#FF9933', '#138808', '#000080', '#FF69B4', '#8B4513', '#2E8B57', '#DC143C', '#696969']
+                    colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a']
                     ax.pie(category_counts.values(), labels=category_counts.keys(), autopct='%1.1f%%', 
                           startangle=90, colors=colors[:len(category_counts)])
                     ax.axis('equal')
-                    ax.set_title('Skill Distribution for Indian Market')
+                    ax.set_title('Skill Distribution')
                     st.pyplot(fig)
             else:
                 st.info("No skills detected. Make sure to include technical skills in your resume.")
         
-        # Resume suggestions for Indian market
-        st.subheader("💡 Improvement Suggestions for Indian Job Market")
+        # Resume suggestions
+        st.subheader("💡 Improvement Suggestions")
         
         suggestion_count = 0
         
         if len(skills) < 5:
-            st.warning("🔸 Consider adding more technical skills - Indian companies value diverse skill sets")
-            suggestion_count += 1
-        
-        if 'java' not in skills and 'python' not in skills:
-            st.warning("🔸 Java and Python are highly demanded in Indian IT market - consider learning them")
+            st.warning("🔸 Consider adding more technical skills to your resume")
             suggestion_count += 1
         
         if 'experience' not in resume_text.lower() and 'work' not in resume_text.lower():
-            st.warning("🔸 Add more details about your work experience - Indian recruiters value relevant experience")
+            st.warning("🔸 Add more details about your work experience and projects")
             suggestion_count += 1
         
         if 'education' not in resume_text.lower() and 'degree' not in resume_text.lower():
-            st.warning("🔸 Include your educational background - Indian companies often consider educational qualifications")
+            st.warning("🔸 Include your educational background")
             suggestion_count += 1
         
         if 'project' not in resume_text.lower():
-            st.warning("🔸 Add details about your projects - Indian startups especially value project experience")
+            st.warning("🔸 Add details about your projects and achievements")
             suggestion_count += 1
         
-        # Check for Indian market specific skills
-        indian_demanded_skills = ['java', 'spring boot', 'python', 'react', 'aws', 'sql']
-        missing_demanded_skills = [skill for skill in indian_demanded_skills if skill not in skills]
-        if missing_demanded_skills:
-            st.info(f"🔸 High-demand skills in India: Consider adding {', '.join(missing_demanded_skills)}")
+        # Check for high-demand skills
+        high_demand_skills = ['java', 'python', 'react', 'aws', 'sql', 'javascript']
+        missing_high_demand = [skill for skill in high_demand_skills if skill not in skills]
+        if missing_high_demand:
+            st.info(f"🔸 High-demand skills: Consider adding {', '.join(missing_high_demand)}")
         
         if suggestion_count == 0:
-            st.success("🎉 Your resume looks good for Indian job market! It includes key sections and in-demand technical skills.")
+            st.success("🎉 Your resume looks good! It includes key sections and technical skills.")
 
 def show_about():
-    st.header("ℹ️ About AI Skill Matcher - India Edition")
+    st.header("ℹ️ About AI Skill Matcher")
     
     st.markdown("""
-    ### 🇮🇳 Made for Indian Job Market
-    
-    This AI-powered skill matcher is specifically designed for the Indian job market, helping bridge the gap between Indian job seekers and opportunities.
-    
     ### 🚀 How It Works
     
     This AI-powered skill matcher uses advanced Natural Language Processing (NLP) techniques to:
@@ -551,7 +539,7 @@ def show_about():
     1. **Text Processing**: Cleans and preprocesses resume and job description text
     2. **Skill Extraction**: Identifies key technical skills using keyword matching
     3. **Similarity Analysis**: Uses TF-IDF vectorization and cosine similarity
-    4. **Match Scoring**: Calculates compatibility scores between resumes and Indian jobs
+    4. **Match Scoring**: Calculates compatibility scores between resumes and jobs
     
     ### 🛠️ Technology Stack
     
@@ -561,35 +549,35 @@ def show_about():
     - **NLP**: TF-IDF, Cosine Similarity
     - **Data Processing**: Pandas, NumPy
     
-    ### 📈 Features for Indian Users
+    ### 📈 Features
     
-    - Real-time skill matching with Indian companies
-    - Salary ranges in INR (LPA)
-    - Indian city-based job locations
-    - Experience level filtering
-    - Skills in demand in Indian market
+    - Real-time skill matching
+    - Detailed match analysis
+    - Skill gap identification
+    - Interactive visualizations
+    - Sample data for testing
     
-    ### 🎯 Use Cases for Indian Job Seekers
+    ### 🎯 Use Cases
     
-    - IT professionals finding opportunities in Indian companies
-    - Freshers matching skills with entry-level positions
-    - Experienced professionals exploring Indian job market
-    - Career guidance and skill development for Indian tech industry
+    - Job seekers finding compatible roles
+    - Recruiters identifying suitable candidates
+    - Career guidance and skill development
+    - Resume optimization and improvement
     
     ### 🔧 How to Use
     
     1. Go to **Skill Matching** tab
-    2. Enter your resume text or use Indian sample resume
-    3. View matching jobs with Indian companies and salaries
-    4. Analyze skill gaps for Indian market demands
-    5. Use insights to improve your resume for Indian recruiters
+    2. Enter your resume text or use a sample resume
+    3. View matching jobs with scores
+    4. Analyze skill gaps and matches
+    5. Use insights to improve your resume
     """)
 
 def main():
     load_css()
     
-    st.markdown('<h1 class="main-header">🇮🇳 AI-Powered Skill Matcher - India</h1>', unsafe_allow_html=True)
-    st.markdown("### Bridge the Gap Between Indian Job Seekers and Opportunities")
+    st.markdown('<h1 class="main-header">🔍 AI-Powered Skill Matcher</h1>', unsafe_allow_html=True)
+    st.markdown("### Bridge the Gap Between Job Seekers and Roles")
     
     # Initialize session state
     if 'matcher' not in st.session_state:
@@ -598,23 +586,23 @@ def main():
         st.session_state.jobs_df, st.session_state.resumes_df = load_sample_data()
     
     # Sidebar
-    st.sidebar.title("🇮🇳 Navigation")
+    st.sidebar.title("Navigation")
     st.sidebar.markdown("---")
     app_mode = st.sidebar.selectbox("Choose Mode", 
                                    ["Skill Matching", "Job Search", "Resume Analysis", "About"])
     
     st.sidebar.markdown("---")
     st.sidebar.info("""
-    **Quick Start for Indian Job Seekers:**
+    **Quick Start:**
     1. Go to **Skill Matching**
     2. Enter your resume
-    3. View matches with Indian companies
-    4. Analyze skill gaps for Indian market
+    3. View job matches
+    4. Analyze skill gaps
     """)
     
     st.sidebar.markdown("---")
     st.sidebar.success("""
-    **Popular Indian Skills:**
+    **Popular Skills:**
     - Java & Spring Boot
     - Python & Django/Flask
     - React & Node.js
